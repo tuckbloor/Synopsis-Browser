@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>SynopsisBrowser</AssemblyName>
+    <RootNamespace>SynopsisBrowser.App</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Version>1.6.2</Version>
+    <AssemblyVersion>1.6.2.0</AssemblyVersion>
+    <FileVersion>1.6.2.0</FileVersion>
+    <Product>Synopsis Browser for Developers</Product>
+    <Company>Synopsis Browser</Company>
+    <Description>A Windows developer browser with diagnostics, linked source context, and optional local Ollama code review.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4129.50" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SynopsisBrowser.Core\SynopsisBrowser.Core.csproj" />
+    <ProjectReference Include="..\SynopsisBrowser.Diagnostics\SynopsisBrowser.Diagnostics.csproj" />
+    <ProjectReference Include="..\SynopsisBrowser.AI\SynopsisBrowser.AI.csproj" />
+    <ProjectReference Include="..\SynopsisBrowser.Projects\SynopsisBrowser.Projects.csproj" />
+  </ItemGroup>
+</Project>

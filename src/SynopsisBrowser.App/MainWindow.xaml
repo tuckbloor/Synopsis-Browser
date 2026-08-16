@@ -1,0 +1,616 @@
+<Window x:Class="SynopsisBrowser.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:SynopsisBrowser.Core;assembly=SynopsisBrowser.Core"
+        xmlns:conv="clr-namespace:SynopsisBrowser.App.Converters"
+        Title="Synopsis Browser for Developers" Width="1500" Height="930" MinWidth="1050" MinHeight="700"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <conv:SeverityToBrushConverter x:Key="SeverityBrush"/>
+        <conv:SeverityToGlyphConverter x:Key="SeverityGlyph"/>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource BgBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="42"/>
+            <RowDefinition Height="58"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="36"/>
+            <RowDefinition x:Name="DevToolsRow" Height="0"/>
+        </Grid.RowDefinitions>
+
+        <!-- Browser tabs -->
+        <Border Grid.Row="0" Background="#0A1017" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="118"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="48"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="13,0,8,0">
+                        <Border Width="22" Height="22" CornerRadius="5" Background="{StaticResource AccentBrush}" Margin="0,0,8,0">
+                            <TextBlock Text="S" Foreground="#071019" FontWeight="Black" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="SYNOPSIS" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="BrowserTabsPanel" Orientation="Horizontal"/>
+                </ScrollViewer>
+                <Button Grid.Column="2" Width="38" Height="32" Margin="5" Padding="0" Content="+" FontSize="21" FontWeight="SemiBold" ToolTip="New tab (Ctrl+T)" Click="NewTab_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Navigation: independent omnibox so page events never overwrite text while the user is typing -->
+        <Border Grid.Row="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+            <Grid Margin="8,7">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Width="42" Height="40" Padding="0" ToolTip="Back" Click="Back_Click">
+                    <Path Stroke="{StaticResource TextBrush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 24,9 L 14,20 L 24,31"/>
+                </Button>
+                <Button Grid.Column="1" Width="42" Height="40" Padding="0" ToolTip="Forward" Click="Forward_Click">
+                    <Path Stroke="{StaticResource TextBrush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 16,9 L 26,20 L 16,31"/>
+                </Button>
+                <Button Grid.Column="2" Width="42" Height="40" Padding="0" ToolTip="Reload" Click="Reload_Click">
+                    <Grid Width="25" Height="25">
+                        <Path Stroke="{StaticResource TextBrush}" StrokeThickness="2" StrokeStartLineCap="Round" Data="M 20,8 A 9,9 0 1 0 21,18"/>
+                        <Path Stroke="{StaticResource TextBrush}" StrokeThickness="2" StrokeLineJoin="Round" Data="M 15,7 L 21,7 L 21,13"/>
+                    </Grid>
+                </Button>
+                <Button Grid.Column="3" Width="42" Height="40" Padding="0" ToolTip="Home" Click="Home_Click">
+                    <Path Stroke="{StaticResource TextBrush}" Fill="Transparent" StrokeThickness="2" StrokeLineJoin="Round" Data="M 9,20 L 20,10 L 31,20 M 12,18 L 12,31 L 28,31 L 28,18 M 17,31 L 17,23 L 23,23 L 23,31"/>
+                </Button>
+
+                <Border Grid.Column="4" Margin="7,0" Height="42" Background="#0B121A" BorderBrush="#3A5065" BorderThickness="1" CornerRadius="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Margin="8,7,0,7" Padding="8,0" CornerRadius="6" Background="#162331">
+                            <TextBlock Text="URL" Foreground="{StaticResource AccentBrush}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBox x:Name="AddressBox" Grid.Column="1" Margin="4,0" Padding="8,0" Height="40"
+                                 Background="Transparent" BorderThickness="0" FontSize="15" FontFamily="Segoe UI"
+                                 VerticalContentAlignment="Center" IsReadOnly="False" Focusable="True" AcceptsReturn="False"
+                                 SpellCheck.IsEnabled="False" ToolTip="Type a web address or search, then press Enter"
+                                 KeyDown="AddressBox_KeyDown"/>
+                        <Button Grid.Column="2" Content="GO" Width="54" Height="32" Margin="4" Padding="6,0" FontWeight="Bold" BorderBrush="{StaticResource AccentBrush}" Click="Go_Click"/>
+                    </Grid>
+                </Border>
+
+                <Button Grid.Column="5" Content="SAVE" Width="58" Height="40" FontWeight="SemiBold" ToolTip="Bookmark this page" Click="Bookmark_Click"/>
+                <Button Grid.Column="6" Content="LAB" Width="52" Height="40" FontWeight="SemiBold" ToolTip="Open diagnostics lab" Click="OpenLab_Click"/>
+                <Button Grid.Column="7" Content="F12" Width="52" Height="40" FontWeight="SemiBold" ToolTip="Open Chromium DevTools" Click="NativeDevTools_Click"/>
+                <Button Grid.Column="8" Content="SET" Width="52" Height="40" FontWeight="SemiBold" ToolTip="Synopsis settings and AI configuration" Click="Settings_Click"/>
+                <Button Grid.Column="9" Content="DEV" Width="56" Height="40" FontWeight="Bold" BorderBrush="{StaticResource AccentBrush}" ToolTip="Toggle Synopsis Developer Tools" Click="ToggleDevTools_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Web content -->
+        <Border Grid.Row="2" Background="#FFFFFF">
+            <Grid x:Name="BrowserHost" Focusable="True" ClipToBounds="True"/>
+        </Border>
+
+        <!-- Health strip -->
+        <Border Grid.Row="3" Background="#0A1017" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,1">
+            <DockPanel Margin="9,0">
+                <Button DockPanel.Dock="Right" Content="DEVELOPER TOOLS" Margin="6,3" Padding="11,3" FontWeight="SemiBold" Click="ToggleDevTools_Click"/>
+                <Button DockPanel.Dock="Right" Content="CLEAR ALL" Margin="2,3" Padding="11,3" FontWeight="Bold" BorderBrush="{StaticResource BadBrush}" ToolTip="Clear Console, Network, Error Centre, AI reviews, API response, Performance metrics and Security session data. Settings and project links are kept." Click="ClearAll_Click"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="{Binding HttpsStatus}" FontWeight="Bold" Margin="2,3,12,3" Padding="8,2" Foreground="{StaticResource AccentBrush}" Click="SecurityStatus_Click"/>
+                    <TextBlock Text="{Binding PageStatus}" FontWeight="SemiBold" Margin="0,0,18,0" VerticalAlignment="Center"/>
+                    <Button Content="{Binding ErrorSummary}" FontWeight="Bold" Margin="0,3,8,3" Padding="8,2" Foreground="{StaticResource BadBrush}" Click="ErrorsStatus_Click"/>
+                    <Button Content="{Binding WarningSummary}" FontWeight="Bold" Margin="0,3,12,3" Padding="8,2" Foreground="{StaticResource WarnBrush}" Click="ErrorsStatus_Click"/>
+                    <TextBlock Text="{Binding OllamaStatus}" FontWeight="Bold" Foreground="{StaticResource GoodBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Custom developer workspace -->
+        <Border x:Name="DevToolsHost" Grid.Row="4" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+            <Grid x:Name="DevToolsDockGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Background="#0A1017">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Thumb Grid.Column="0" Height="22" Margin="6,4" Cursor="SizeNS" Background="#172532" ToolTip="Drag up or down to resize Developer Tools" DragDelta="DevToolsResize_DragDelta"/>
+                    <TextBlock Grid.Column="0" Text="DRAG TO RESIZE" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" FontWeight="Bold" Foreground="{StaticResource MutedBrush}"/>
+                    <TextBlock Grid.Column="1" Text="SYNOPSIS DEVELOPER WORKSPACE" VerticalAlignment="Center" Margin="10,0" FontSize="10" FontWeight="Bold" Foreground="{StaticResource MutedBrush}"/>
+                    <Button Grid.Column="2" Content="SHRINK" Height="24" Margin="2" Padding="9,1" Click="ShrinkDevTools_Click" ToolTip="Make the docked Developer Tools shorter"/>
+                    <Button Grid.Column="3" Content="EXPAND" Height="24" Margin="2" Padding="9,1" Click="ExpandDevTools_Click" ToolTip="Make the docked Developer Tools taller"/>
+                    <Button Grid.Column="4" Content="DETACH" Height="24" Margin="2" Padding="9,1" BorderBrush="{StaticResource AccentBrush}" Click="DetachDevTools_Click" ToolTip="Move Developer Tools into a separate window"/>
+                    <Button Grid.Column="5" Content="HIDE" Height="24" Margin="2,2,6,2" Padding="9,1" Click="HideDevTools_Click"/>
+                </Grid>
+                <TabControl x:Name="DevTabs" Grid.Row="1" SelectedIndex="0">
+                <TabItem x:Name="ErrorsTab" Header="ERROR CENTRE">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.15*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                        <DataGrid Grid.Column="0" ItemsSource="{Binding Diagnostics}" SelectedItem="{Binding SelectedDiagnostic}" SelectionChanged="Diagnostics_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="" Width="44">
+                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><Border Width="26" Height="24" CornerRadius="5" BorderThickness="1" BorderBrush="{Binding Severity, Converter={StaticResource SeverityBrush}}"><TextBlock Text="{Binding Severity, Converter={StaticResource SeverityGlyph}}" Foreground="{Binding Severity, Converter={StaticResource SeverityBrush}}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="TYPE" Binding="{Binding Kind}" Width="90"/>
+                                <DataGridTextColumn Header="PROBLEM" Binding="{Binding Title}" Width="210"/>
+                                <DataGridTextColumn Header="MESSAGE" Binding="{Binding Message}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Border Grid.Column="2" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                            <Grid>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="SELECTED INCIDENT" Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedDiagnostic.Title}" FontSize="18" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Text="{Binding SelectedDiagnostic.Message}" Foreground="{StaticResource MutedBrush}" Margin="0,9,0,9" TextWrapping="Wrap"/>
+                                <TextBox Grid.Row="2" Text="{Binding SelectedDiagnostic.Details}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"/>
+                                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                    <Button Content="COPY" Click="CopyDiagnostic_Click"/>
+                                    <Button Content="AI ANALYSE" FontWeight="Bold" BorderBrush="{StaticResource AccentBrush}" Click="AnalyzeSelected_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="CONSOLE">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <DataGrid ItemsSource="{Binding ConsoleEntries}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="TIME" Binding="{Binding Timestamp, StringFormat=HH:mm:ss}" Width="82"/>
+                                <DataGridTextColumn Header="LEVEL" Binding="{Binding Level}" Width="90"/>
+                                <DataGridTextColumn Header="MESSAGE" Binding="{Binding Message}" Width="*"/>
+                                <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="260"/>
+                                <DataGridTextColumn Header="LINE" Binding="{Binding Line}" Width="60"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <TextBlock Text=">" FontFamily="Consolas" FontSize="18" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="6,0"/>
+                            <TextBox x:Name="ConsoleInput" Grid.Column="1" FontFamily="Consolas" KeyDown="ConsoleInput_KeyDown"/>
+                            <Button Grid.Column="2" Content="RUN" Click="RunConsole_Click"/>
+                            <Button Grid.Column="3" Content="CLEAR ALL" ToolTip="Clear all transient Developer Tools data" Click="ClearDiagnostics_Click"/>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="NETWORK">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                        <DataGrid Grid.Column="0" ItemsSource="{Binding NetworkEntries}" SelectedItem="{Binding SelectedNetwork}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="METHOD" Binding="{Binding Method}" Width="75"/>
+                                <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="70"/>
+                                <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="90"/>
+                                <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="*"/>
+                                <DataGridTextColumn Header="MS" Binding="{Binding DurationMs, StringFormat=F0}" Width="70"/>
+                                <DataGridTextColumn Header="BYTES" Binding="{Binding EncodedBytes}" Width="85"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Border Grid.Column="2" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+                                <TextBlock Text="REQUEST INSPECTOR" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                <TextBlock Text="{Binding SelectedNetwork.Method}" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding SelectedNetwork.Url}" FontSize="14" TextWrapping="Wrap"/>
+                                <TextBlock Text="REQUEST HEADERS" FontWeight="Bold" Margin="0,12,0,4"/>
+                                <TextBox Text="{Binding SelectedNetwork.RequestHeadersJson}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap"/>
+                                <TextBlock Text="PAYLOAD" FontWeight="Bold" Margin="0,12,0,4"/>
+                                <TextBox Text="{Binding SelectedNetwork.PostData}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap"/>
+                                <TextBlock Text="RESPONSE HEADERS" FontWeight="Bold" Margin="0,12,0,4"/>
+                                <TextBox Text="{Binding SelectedNetwork.ResponseHeadersJson}" IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                    <Button Content="COPY URL" Click="CopyNetworkUrl_Click"/>
+                                    <Button Content="COPY AS CURL" Click="CopyAsCurl_Click"/>
+                                </StackPanel>
+                            </StackPanel></ScrollViewer>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="ApiTab" Header="API / RESPONSE">
+                    <Grid Margin="12">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <DockPanel>
+                            <TextBlock Text="SELECTED NETWORK RESPONSE" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}"/>
+                            <Button DockPanel.Dock="Right" Content="LOAD BODY" Click="LoadResponseBody_Click"/>
+                            <Button DockPanel.Dock="Right" Content="PRETTY JSON" Click="PrettyJson_Click"/>
+                        </DockPanel>
+                        <TextBox Grid.Row="1" Text="{Binding ApiResponseBody}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                                 FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,8,0,8"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="COPY RESPONSE" Click="CopyApiResponse_Click"/>
+                            <Button Content="COPY FETCH" Click="CopyFetch_Click"/>
+                            <Button Content="COPY PHP" Click="CopyPhpRequest_Click"/>
+                            <Button Content="COPY C#" Click="CopyCSharpRequest_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="PERFORMANCE">
+                    <Grid Margin="14">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4"><StackPanel><TextBlock Text="REQUESTS" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="10"/><TextBlock Text="{Binding RequestCount}" FontSize="25" FontWeight="Bold"/></StackPanel></Border>
+                            <Border Grid.Column="1" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4"><StackPanel><TextBlock Text="FAILED" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="10"/><TextBlock Text="{Binding FailedRequestCount}" FontSize="25" FontWeight="Bold" Foreground="{StaticResource BadBrush}"/></StackPanel></Border>
+                            <Border Grid.Column="2" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4"><StackPanel><TextBlock Text="TRANSFERRED" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="10"/><TextBlock Text="{Binding TotalTransferredText}" FontSize="25" FontWeight="Bold"/></StackPanel></Border>
+                            <Border Grid.Column="3" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4"><StackPanel><TextBlock Text="SLOWEST OBSERVED" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="10"/><TextBlock Text="{Binding SlowestRequestText}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/></StackPanel></Border>
+                        </Grid>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding NetworkEntries}" Margin="4,10,4,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="MS" Binding="{Binding DurationMs, StringFormat=F0}" Width="75"/>
+                                <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="75"/>
+                                <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="100"/>
+                                <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="*"/>
+                                <DataGridTextColumn Header="BYTES" Binding="{Binding EncodedBytes}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="RESPONSIVE">
+                    <Grid Margin="18">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="1.2*"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="DEVICE VIEWPORT" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                            <TextBlock Text="Test responsive layouts without leaving Synopsis Browser." FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,14"/>
+                            <Button Content="PHONE | 390 x 844 | DPR 3" HorizontalAlignment="Stretch" Click="PhonePreset_Click"/>
+                            <Button Content="TABLET | 768 x 1024 | DPR 2" HorizontalAlignment="Stretch" Click="TabletPreset_Click"/>
+                            <Button Content="LAPTOP | 1366 x 768 | DPR 1" HorizontalAlignment="Stretch" Click="LaptopPreset_Click"/>
+                            <Button Content="DESKTOP | 1920 x 1080 | DPR 1" HorizontalAlignment="Stretch" Click="DesktopPreset_Click"/>
+                            <Button Content="RESET TO REAL WINDOW" HorizontalAlignment="Stretch" BorderBrush="{StaticResource AccentBrush}" Click="ResetDevicePreset_Click"/>
+                        </StackPanel>
+                        <Border Grid.Column="2" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="HOW IT WORKS" FontWeight="Bold"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0" Text="Synopsis uses Chromium's Emulation domain through the DevTools Protocol. The page receives the selected viewport metrics while the browser chrome and diagnostic panels stay available."/>
+                                <TextBlock Text="V2" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,16,0,0"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" Text="Custom dimensions, orientation switching, touch emulation, user-agent profiles, network throttling and saved per-project device sets plug into the same browser-session API."/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="SecurityTab" Header="SECURITY + TLS">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="CONNECTION" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedBrush}"/>
+                                <TextBlock Text="{Binding HttpsStatus}" FontSize="25" FontWeight="Bold" Margin="0,5,0,16"/>
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="155"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="Certificate"/><TextBlock Text="Protocol"/><TextBlock Text="Cipher"/><TextBlock Text="Issuer"/><TextBlock Text="Valid from"/><TextBlock Text="Expires"/><TextBlock Text="Days remaining"/><TextBlock Text="Chain"/></StackPanel>
+                                    <StackPanel Grid.Column="1" TextElement.Foreground="{StaticResource AccentBrush}"><TextBlock Text="{Binding Security.CertificateStatus}"/><TextBlock Text="{Binding Security.Protocol}"/><TextBlock Text="{Binding Security.CipherSuite}"/><TextBlock Text="{Binding Security.Issuer}" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Security.ValidFrom}"/><TextBlock Text="{Binding Security.ValidTo}"/><TextBlock Text="{Binding Security.DaysRemaining}"/><TextBlock Text="{Binding Security.ChainValid}"/></StackPanel>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="SECURITY HEADERS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedBrush}"/>
+                                <TextBlock Text="{Binding SecurityScoreText}" FontSize="25" FontWeight="Bold" Margin="0,5,0,16"/>
+                                <TextBlock Text="HTTPS - encrypted transport" Margin="0,4"/><TextBlock Text="{Binding Security.IsHttps}" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Content-Security-Policy" Margin="0,8,0,0"/><TextBlock Text="{Binding Security.HasCsp}" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Strict-Transport-Security" Margin="0,8,0,0"/><TextBlock Text="{Binding Security.HasHsts}" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="X-Frame-Options" Margin="0,8,0,0"/><TextBlock Text="{Binding Security.HasXFrameOptions}" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Referrer-Policy" Margin="0,8,0,0"/><TextBlock Text="{Binding Security.HasReferrerPolicy}" Foreground="{StaticResource AccentBrush}"/>
+                                <Button Content="AI REVIEW SECURITY" HorizontalAlignment="Left" Margin="0,14,0,0" Click="AnalyzeSecurity_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="AiTab" Header="AI CODE REVIEW">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Margin="2,0,2,10">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                <TextBlock Text="OLLAMA" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding OllamaStatus}" VerticalAlignment="Center" Foreground="{StaticResource GoodBrush}" Margin="0,0,18,0"/>
+                                <ComboBox Width="220" ItemsSource="{Binding OllamaModels}" SelectedItem="{Binding SelectedModel}"/>
+                                <Button Content="REFRESH MODELS" Click="RefreshOllama_Click"/>
+                            </StackPanel>
+                            <TextBlock Text="INCIDENT → SOURCE → FIX" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                        </DockPanel>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="340"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="1.05*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="1.2*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- COLUMN 1: correlated developer incidents -->
+                            <Border Grid.Column="0" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                    <StackPanel Margin="2,0,2,10">
+                                        <TextBlock Text="INCIDENTS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBlock Text="{Binding AiErrorCountText}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,2"/>
+                                        <TextBlock Text="Related HTTP, network, JavaScript and server signals are grouped when Synopsis can correlate them. Click an incident to review it." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" FontSize="11"/>
+                                    </StackPanel>
+                                    <ListBox Grid.Row="1" ItemsSource="{Binding AiIncidents}" SelectedItem="{Binding SelectedIncident, Mode=TwoWay}" SelectionChanged="AiIncidents_SelectionChanged" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="8,10" Margin="0,0,0,2">
+                                                    <StackPanel>
+                                                        <DockPanel>
+                                                            <TextBlock Text="{Binding Severity}" Foreground="{Binding Severity, Converter={StaticResource SeverityBrush}}" FontWeight="Bold" FontSize="10" Margin="0,0,8,0"/>
+                                                            <TextBlock Text="{Binding TimeText}" Foreground="{StaticResource MutedBrush}" FontSize="10" HorizontalAlignment="Right"/>
+                                                        </DockPanel>
+                                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,2"/>
+                                                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" MaxHeight="42" FontSize="11"/>
+                                                        <DockPanel Margin="0,5,0,0">
+                                                            <TextBlock Text="{Binding KindSummary}" Foreground="{StaticResource AccentBrush}" FontSize="10"/>
+                                                            <TextBlock Text="{Binding SignalSummary}" Foreground="{StaticResource MutedBrush}" FontSize="10" HorizontalAlignment="Right"/>
+                                                        </DockPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Border>
+
+                            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="#22303D"/>
+
+                            <!-- COLUMN 2: evidence and real linked source -->
+                            <Border Grid.Column="2" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="INCIDENT EVIDENCE" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                        <TextBlock Text="{Binding SelectedIncident.Title, TargetNullValue='Select an incident'}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,4,0,2"/>
+                                        <TextBlock Text="{Binding SelectedIncident.Message}" TextWrapping="Wrap"/>
+                                        <ItemsControl ItemsSource="{Binding SelectedIncident.Signals}" Margin="0,8,0,4">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,5,0,3">
+                                                        <StackPanel>
+                                                            <TextBlock FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}">
+                                                                <Run Text="{Binding Kind}"/><Run Text="  "/><Run Text="{Binding Title}"/>
+                                                            </TextBlock>
+                                                            <TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" FontSize="10"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+
+                                    <Border Grid.Row="1" Background="#101923" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,6,0,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="LINKED SOURCE" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                                <WrapPanel HorizontalAlignment="Right">
+                                                    <Button Content="LINK SITE" Click="LinkProject_Click"/>
+                                                    <Button Content="OPEN SOURCE" Click="OpenAiSource_Click"/>
+                                                </WrapPanel>
+                                            </DockPanel>
+                                            <TextBlock Text="{Binding AiProjectStatus}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding AiSourceResolution}" Foreground="{StaticResource GoodBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding AiSourcePath}" Foreground="{StaticResource AccentBrush}" FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <TextBox Grid.Row="2" Text="{Binding AiSourcePreview}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="11" Background="#090F15" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Padding="8"/>
+
+                                    <StackPanel Grid.Row="3" Margin="0,8,0,0">
+                                        <Expander Header="RECENT SERVER LOG EVIDENCE">
+                                            <TextBox Text="{Binding AiLogEvidence}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="10" MaxHeight="150" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                                        </Expander>
+                                        <Expander Header="FULL EVIDENCE SENT TO OLLAMA" Margin="0,4,0,0">
+                                            <TextBox Text="{Binding AiSourceEvidence}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="10" MaxHeight="180" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                                        </Expander>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <GridSplitter Grid.Column="3" Width="8" HorizontalAlignment="Stretch" Background="#22303D"/>
+
+                            <!-- COLUMN 3: Ollama review / fix -->
+                            <Border Grid.Column="4" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,8">
+                                            <StackPanel>
+                                                <TextBlock Text="OLLAMA CODE REVIEW" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                                <TextBlock Text="{Binding AiPanelStatus}" TextWrapping="Wrap" FontSize="11" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                            <WrapPanel HorizontalAlignment="Right">
+                                                <Button Content="QUICK REVIEW" BorderBrush="{StaticResource AccentBrush}" Click="ReviewIncident_Click"/>
+                                                <Button Content="DEEP REVIEW" Click="DeepReviewIncident_Click"/>
+                                            </WrapPanel>
+                                        </DockPanel>
+
+                                        <TextBlock Text="LIKELY ROOT CAUSE" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                        <TextBlock Text="{Binding AiRecommendation.RootCause}" TextWrapping="Wrap" FontSize="19" FontWeight="SemiBold" Margin="0,5,0,10"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <TextBlock Text="CONFIDENCE  " Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                            <TextBlock Text="{Binding AiRecommendation.Confidence}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="EXPLANATION" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                        <TextBlock Text="{Binding AiRecommendation.Explanation}" TextWrapping="Wrap" Margin="0,5,0,12"/>
+
+                                        <TextBlock Text="POSSIBLE FIX" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                        <TextBlock Text="{Binding AiRecommendation.SuggestedFix}" TextWrapping="Wrap" Margin="0,5,0,12"/>
+
+                                        <DockPanel>
+                                            <TextBlock Text="SUGGESTED CODE" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                            <Button Content="COPY CODE" HorizontalAlignment="Right" Click="CopyAiCode_Click"/>
+                                        </DockPanel>
+                                        <TextBox Text="{Binding AiRecommendation.SuggestedCode}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" MinHeight="130" MaxHeight="260" Background="#090F15" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Padding="8" Margin="0,5,0,10"/>
+
+                                        <TextBlock Text="INVESTIGATION" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                        <ItemsControl ItemsSource="{Binding AiRecommendation.InvestigationSteps}" Margin="0,5,0,10">
+                                            <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2,0,2"/></DataTemplate></ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <TextBlock Text="RELATED SIGNALS" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                        <ItemsControl ItemsSource="{Binding AiRecommendation.RelatedSignals}" Margin="0,5,0,0">
+                                            <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2,0,2"/></DataTemplate></ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="SettingsTab" Header="SETTINGS">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="1.25*"/></Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="SYNOPSIS SETTINGS" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                <TextBlock Text="Browser defaults" FontSize="25" FontWeight="SemiBold" Margin="0,5,0,16"/>
+
+                                <Border Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                                    <StackPanel>
+                                        <TextBlock Text="HOME PAGE" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBox x:Name="HomePageBox" Margin="0,6,0,14" ToolTip="Page opened by the Home button when a web home page is configured"/>
+
+                                        <TextBlock Text="SEARCH ENGINE" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                                        <ComboBox x:Name="SearchEngineBox" Margin="0,6,0,8" SelectionChanged="SearchEngine_SelectionChanged"/>
+                                        <TextBox x:Name="SearchTemplateBox" Margin="0,0,0,4" ToolTip="Use {query} where the encoded search text should go"/>
+                                        <TextBlock Text="Custom templates must contain {query}." Foreground="{StaticResource MutedBrush}" FontSize="11"/>
+
+                                        <CheckBox x:Name="DevToolsDefaultBox" Content="Open Synopsis developer tools on startup" Margin="0,14,0,0"/>
+
+                                        <Button Content="SAVE BROWSER SETTINGS" HorizontalAlignment="Left" Margin="0,16,0,0" Click="SaveBrowserSettings_Click"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,14,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="LOCAL DATA" FontWeight="Bold"/>
+                                        <TextBlock Text="Synopsis stores ordinary preferences in LocalAppData. AI keys are stored separately and protected for your current Windows account." TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
+                                        <TextBlock x:Name="SettingsPathText" FontFamily="Consolas" TextWrapping="Wrap" Foreground="{StaticResource AccentBrush}" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="AI ADMIN" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                                <TextBlock Text="Ollama connection" FontSize="25" FontWeight="SemiBold" Margin="0,5,0,16"/>
+
+                                <Border Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                                    <StackPanel>
+                                        <TextBlock Text="PROVIDER" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                                        <ComboBox x:Name="AiProviderBox" Margin="0,6,0,14" SelectionChanged="AiProvider_SelectionChanged"/>
+
+                                        <TextBlock Text="OLLAMA ENDPOINT" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBox x:Name="OllamaEndpointBox" Margin="0,6,0,4"/>
+                                        <TextBlock Text="Local default: http://localhost:11434   Cloud: https://ollama.com" Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap"/>
+
+                                        <TextBlock Text="API KEY" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
+                                        <Grid Margin="0,6,0,4">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <PasswordBox x:Name="ApiKeyBox" Grid.Column="0" PasswordChar="*" Padding="12,8"/>
+                                            <TextBox x:Name="ApiKeyVisibleBox" Grid.Column="0" Visibility="Collapsed" Padding="12,8"/>
+                                            <Button x:Name="ShowApiKeyButton" Grid.Column="1" Content="SHOW" Width="64" Margin="6,0,0,0" Click="ToggleApiKey_Click"/>
+                                        </Grid>
+                                        <TextBlock Text="Local Ollama needs no key. Remote/cloud keys are encrypted with Windows DPAPI before being stored." Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap"/>
+                                        <Button Content="CLEAR STORED KEY" HorizontalAlignment="Left" Margin="0,8,0,0" Click="ClearApiKey_Click"/>
+
+                                        <TextBlock Text="DEFAULT MODEL" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
+                                        <ComboBox x:Name="SettingsModelBox" Margin="0,6,0,4" ItemsSource="{Binding OllamaModels}" SelectedItem="{Binding SelectedModel}"/>
+                                        <TextBlock Text="Synopsis prefers an installed coding model automatically when no model has been chosen." Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap"/>
+
+                                        <TextBlock Text="ANALYSIS TIMEOUT" FontWeight="Bold" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
+                                        <ComboBox x:Name="AiTimeoutBox" Width="150" HorizontalAlignment="Left" Margin="0,6,0,0"/>
+
+                                        <CheckBox x:Name="IncludeProjectContextBox" Content="Include linked project context in AI diagnosis" Margin="0,14,0,0"/>
+                                        <CheckBox x:Name="AutoAnalyzeErrorsBox" Content="Automatically pre-analyse new Error/Critical diagnostics in the background (optional)" Margin="0,8,0,0"/>
+                                        <CheckBox Content="Always redact detected secrets before AI analysis" IsChecked="True" IsEnabled="False" Margin="0,8,0,0"/>
+
+                                        <WrapPanel Margin="0,15,0,0">
+                                            <Button Content="TEST CONNECTION" Click="TestAiConnection_Click"/>
+                                            <Button Content="TEST SELECTED MODEL" BorderBrush="{StaticResource AccentBrush}" Click="TestAiModel_Click"/>
+                                            <Button Content="REFRESH MODELS" Click="RefreshSettingsModels_Click"/>
+                                            <Button Content="SAVE AI SETTINGS" BorderBrush="{StaticResource AccentBrush}" Click="SaveAiSettings_Click"/>
+                                        </WrapPanel>
+                                        <TextBlock x:Name="AiSettingsStatusText" Text="Not tested yet." Foreground="{StaticResource MutedBrush}" FontWeight="SemiBold" Margin="3,10,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="PROJECT">
+                    <Grid Margin="18">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="CURRENT SITE / PROJECT LINK" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                            <TextBlock Text="{Binding Project.Host, TargetNullValue=No project linked}" FontSize="23" FontWeight="Bold" Margin="0,5,0,12"/>
+
+                            <TextBlock Text="LINKED DIRECTORY" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                            <Border Background="#0B121A" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="7" Padding="11,9" Margin="0,5,0,10">
+                                <TextBlock Text="{Binding Project.Path, TargetNullValue=No directory linked to this site}" Foreground="{StaticResource AccentBrush}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                            </Border>
+
+                            <TextBlock Text="FRAMEWORK" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                            <TextBlock Text="{Binding Project.Framework, TargetNullValue=-}" Margin="0,4,0,9" FontWeight="SemiBold"/>
+                            <TextBlock Text="DETECTED LOG" Foreground="{StaticResource MutedBrush}" FontWeight="Bold" FontSize="11"/>
+                            <TextBlock Text="{Binding Project.LogFile, TargetNullValue=No log detected}" Margin="0,4,0,0" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+
+                            <WrapPanel Margin="0,13,0,0">
+                                <Button Content="LINK / CHANGE FOLDER" Click="LinkProject_Click"/>
+                                <Button Content="OPEN FOLDER" Click="OpenProjectFolder_Click"/>
+                                <Button Content="VS CODE" Click="OpenVsCode_Click"/>
+                                <Button Content="UNLINK" Foreground="{StaticResource BadBrush}" BorderBrush="{StaticResource BadBrush}" Click="UnlinkProject_Click" ToolTip="Remove only the Synopsis mapping. Project files are never deleted."/>
+                            </WrapPanel>
+                            <TextBlock Text="UNLINK removes only Synopsis Browser's saved mapping. It never deletes, moves, or changes the linked directory." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="2,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Border Grid.Column="2" Background="#0E151D" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="V1 PROJECT AWARENESS" FontWeight="Bold"/>
+                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Text="When a host is linked, Synopsis detects Laravel/.NET/Node-style projects and tails a detected development log. New server errors enter the same Error Centre as JavaScript, HTTP and TLS failures."/>
+                                <TextBlock Margin="0,14,0,0" Text="V2 READY" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Text="The project service is isolated behind IProjectLinkService so V2 can add Docker, source maps, Git providers, framework adapters and editor protocols without changing the browser core."/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
